@@ -1,0 +1,13 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "title":"GitHub Search Log",
+  "type":"object",
+  "required":["q","scope","type","ts"],
+  "properties":{
+    "q":{"type":"string"},
+    "scope":{"type":"string"},
+    "type":{"const":"repo"},
+    "ts":{"type":"string","format":"date-time"}
+  },
+  "additionalProperties":false
+}
