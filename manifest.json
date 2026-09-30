@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "GitHub Repo Search",
+  "version": "0.1.0",
+  "description": "Minimal GitHub repository search popup with JSON sidebar output.",
+  "permissions": ["storage", "sidePanel"],
+  "host_permissions": ["https://api.github.com/*"],
+  "action": {"default_title": "GitHub Repo Search", "default_popup": "popup.html"},
+  "side_panel": {"default_path": "sidebar.html"},
+  "background": {"service_worker": "background.js"}
+}
