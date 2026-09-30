@@ -1,9 +1,15 @@
 const LOG_KEY = "githubSearchJsonl";
 const RESULT_KEY = "githubSearchLastResult";
 
+function parseScope(scope) {
+  if (!scope) return {user:"", org:""};
+  if (/^org:/i.test(scope)) return {user:"", org:scope.replace(/^org:/i, "")};
+  return {user:scope, org:""};
+}
+
 function buildQuery(q, scope) {
-  let qualifier = "";
-  if (scope) qualifier = /^org:/i.test(scope) ? scope : (/^[^:]+$/.test(scope) ? "user:" + scope : scope);
+  const parsed = parseScope(scope);
+  const qualifier = parsed.org ? "org:" + parsed.org : (parsed.user ? "user:" + parsed.user : "");
   return [qualifier, "type:repo", q].filter(Boolean).join(" ");
 }
 
@@ -15,13 +21,14 @@ async function appendLog(record) {
 
 async function searchGitHub(q, scope) {
   const githubQuery = buildQuery(q, scope);
+  const parsed = parseScope(scope);
   const url = "https://api.github.com/search/repositories?per_page=30&q=" + encodeURIComponent(githubQuery);
   const response = await fetch(url, {headers:{"Accept":"application/vnd.github+json"}});
   if (!response.ok) throw new Error("GitHub API: " + response.status + " " + response.statusText);
   const data = await response.json();
 
   const result = {
-    q:q, scope:scope || "", type:"repo", github_query:githubQuery,
+    q:q, user:parsed.user, org:parsed.org, type:"repo", github_query:githubQuery,
     total_count:data.total_count || 0,
     items:(data.items || []).map(repo => ({
       name:repo.full_name, url:repo.html_url, description:repo.description || "",
@@ -29,7 +36,7 @@ async function searchGitHub(q, scope) {
     }))
   };
   await chrome.storage.local.set({[RESULT_KEY]:result});
-  await appendLog({q:q, scope:scope || "", type:"repo", ts:new Date().toISOString()});
+  await appendLog({q:q, user:parsed.user, org:parsed.org, type:"repo", ts:new Date().toISOString()});
   return result;
 }
 
